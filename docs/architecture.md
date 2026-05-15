@@ -4,20 +4,27 @@
 
 ```mermaid
 flowchart TD
-  A["Email thread received"] --> B["Load email thread"]
-  B --> C["Classify intent"]
-  C -->|Not scheduling| Z["End"]
-  C -->|New meeting or reschedule| D["Extract meeting request"]
-  C -->|Cancel| K["Draft cancellation handling"]
+  A["Email thread received"] --> B["Classify intent"]
+  B -->|Not scheduling| Z["Ignore / normal reply"]
+  B -->|New meeting| C["Extract request"]
+  B -->|Reschedule| R["Load existing event"]
+  B -->|Cancel| X["Cancel / update event"]
+
+  C --> D["Resolve people, time zones, preferences"]
+  R --> D
   D --> E["Check calendar availability"]
   E --> F["Rank candidate slots"]
-  F --> G["Draft reply"]
-  G --> H["Human approval"]
-  H -->|Approve| I["Send response"]
-  H -->|Edit| I
+  F --> G["Draft response or invite"]
+  G --> H["Human approval gate"]
+  H -->|Approve| I["Send email / create invite"]
+  H -->|Edit| G
   H -->|Reject| Z
-  I --> J["End"]
+  I --> J["Wait for replies"]
+  J --> B
 ```
+
+In code, `load_email_thread` represents the incoming email-thread event before classification.
+For the local mock demo, `wait_for_replies` marks the state as waiting and then terminates through the not-scheduling path so the run does not reprocess the same email forever. In production, resume the graph from this node when a new email reply arrives.
 
 ## State
 
@@ -26,13 +33,21 @@ The graph uses a shared scheduling state with:
 - `email_thread_id`
 - `email_thread`
 - `intent`
+- `existing_event`
 - `meeting_request`
+- `participants`
+- `timezones`
+- `preference_summary`
 - `busy_blocks`
 - `candidate_slots`
 - `selected_slot`
 - `draft_reply`
 - `approval`
 - `calendar_event_id`
+- `cancellation_result`
+- `waiting_for_reply`
+- `reply_received`
+- `workflow_status`
 - `error`
 
 ## Integration Boundary

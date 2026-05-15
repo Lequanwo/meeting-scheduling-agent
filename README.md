@@ -11,7 +11,8 @@ The project starts with mock email and calendar integrations so you can run the 
 - Checks busy blocks across attendees.
 - Applies scheduling preferences such as business hours, buffers, preferred days, and blackout periods.
 - Drafts a scheduling response with ranked time options.
-- Uses a human approval gate before sending or creating external side effects.
+- Uses a human approval gate for proposed scheduling replies and invite creation.
+- Supports separate new meeting, reschedule, cancellation, and wait-for-reply paths.
 - Leaves clear integration seams for real email and calendar APIs.
 
 ## Project Layout
@@ -66,9 +67,11 @@ Good first production integrations:
 
 ## Approval Model
 
-The default graph supports an approval node. During local demos, `auto_approve=True` keeps the flow simple. In production, keep approval enabled for:
+The default graph supports an approval node before sending proposed scheduling replies or creating/updating invites. During local demos, `auto_approve=True` keeps the flow simple. In production, keep approval enabled for:
 
 - Sending external emails.
 - Creating, updating, or canceling calendar invites.
 - Booking outside business hours.
 - Overriding blackout periods or VIP account rules.
+
+The cancellation branch is intentionally isolated in the graph. If your production policy requires approval before cancellation, route `cancel_or_update_event` through the approval node before calling provider APIs.

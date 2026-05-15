@@ -31,6 +31,16 @@ class MeetingRequest:
 
 
 @dataclass(frozen=True)
+class CalendarEvent:
+    event_id: str
+    title: str
+    attendees: tuple[str, ...]
+    start: datetime
+    end: datetime
+    source_thread_id: str
+
+
+@dataclass(frozen=True)
 class TimeWindow:
     start: datetime
     end: datetime

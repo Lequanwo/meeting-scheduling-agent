@@ -4,7 +4,7 @@ from dataclasses import dataclass
 from datetime import datetime
 from typing import Protocol
 
-from meeting_scheduler_agent.models import EmailThread, TimeWindow
+from meeting_scheduler_agent.models import CalendarEvent, EmailThread, TimeWindow
 
 
 class EmailClient(Protocol):
@@ -16,6 +16,9 @@ class EmailClient(Protocol):
 
 
 class CalendarClient(Protocol):
+    def find_event_for_thread(self, thread_id: str) -> CalendarEvent | None:
+        ...
+
     def get_busy_blocks(
         self,
         attendees: tuple[str, ...],
@@ -31,7 +34,25 @@ class CalendarClient(Protocol):
         start: datetime,
         end: datetime,
         description: str,
+        source_thread_id: str,
     ) -> str:
+        ...
+
+    def update_event(
+        self,
+        event_id: str,
+        start: datetime,
+        end: datetime,
+        description: str,
+    ) -> str:
+        ...
+
+    def cancel_event(self, event_id: str) -> dict[str, str]:
+        ...
+
+
+class ContactClient(Protocol):
+    def lookup_people(self, emails: tuple[str, ...]) -> dict[str, dict[str, object]]:
         ...
 
 
@@ -39,3 +60,4 @@ class CalendarClient(Protocol):
 class SchedulingTools:
     email: EmailClient
     calendar: CalendarClient
+    contacts: ContactClient
